@@ -1,0 +1,145 @@
+from sage.all import *
+import time
+
+
+###############################################################################
+# Ask the user for a message and return its binary representation in a list
+###############################################################################
+def user_input():
+
+    message = input("Enter your message: ")
+    print("Typed message:", message)
+
+    bits = [int(b) for c in message for b in format(ord(c), '08b')]
+    return(bits)
+
+###############################################################################
+# Basic hash function H computation. Given curve points matrix P and a length 
+# 'm' vector 'v', it computes the 'P*v' product and returns a length 'n*(l+1)' 
+# binary string per result ('l' is the length of the x-coordinate of elliptic
+# curve points, 256 in the current implementation).
+###############################################################################
+def H(P,vi,n,m,PointInfinity,q):
+    output=[]
+
+    for i in range(n):
+
+        # -- Compute the i-th matrix row - vector product --
+        acum = PointInfinity
+        for j in range(m):
+            acum = acum + vi[j]*P[i*m + j]
+
+        # -- Take the resulting elliptic curve point x-coordinate
+        bitlist = Integer(acum[0]).bits()
+
+        # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q')
+        while len(bitlist) < q.nbits():
+            bitlist.insert(0,0)
+
+        # -- Append the compressed y-coordinate
+        if Integer(acum[1]) < (Integer(q)-1)/2 :
+            bitlist.append(0)
+        else:
+            bitlist.append(1)
+
+        output.extend(bitlist)
+
+    return(output)
+
+###############################################################################
+# Full hash computation
+###############################################################################
+def HashComputation(P,vv,n,m,m_prime,PointInfinity,q):
+
+    # -- Append zeros to the last block and compute its hash digest -- 
+    numBlocks = len(vv)
+    input = vv[numBlocks-1]
+    while (len(input)<m):
+        input.append(0)
+    result = H(MatrixP,input,n,m,PointInfinity,q)
+
+    # -- Include the rest of blocks in the computation of the hash digest --
+    index = numBlocks-2
+    while index >= 0:
+        input=vv[index]
+        input.extend(result)
+        result = H(MatrixP,input,n,m,PointInfinity,q)
+        index = index - 1
+        
+    return(result)
+
+
+#####################################################
+# Main procedure
+#####################################################
+
+# -- The lattice is defined by a matrix of 'n' x 'm' dimensions --
+n = 2
+m = 771
+m_prime = 514
+d=m-m_prime
+
+# -- Print parameters --
+print("Lattice parameter 'n': ",n)
+print("Lattice parameter 'm': ",m)
+print("m':",m_prime)
+print("m-m':",d)
+print(" ")
+
+# -- Ask the user to type a string and return its binary representation in a list --
+v = user_input()
+print("Typed message is", len(v) ,"bits long.")
+
+# -- Pad the binary string so that it can be divided into blocks of d=(m-m') length --
+# -- This padding includes a 64-bit sequence at the end representing the length   --
+# -- of the original message.
+
+# -- Represent the input message length in a 64-bit sequence --
+v_length = Integer(len(v)).bits()
+while len(v_length) < 64 :
+    v_length.append(0)
+
+# -- Pad the original message and append de 64-bit representation of original message length --
+while len(v)%d != (d-64):
+    v.append(0)
+v.extend(v_length)
+print("Padded message is", len(v) ,"bits long.")
+
+# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks --
+vv=[]
+
+n_blocks = (len(v)) / d
+print("Number of blocks: ",n_blocks)
+
+for j in range(n_blocks):
+     vj = v[j*d:(j+1)*d]
+     vv.append(vj)
+     print("v[",j+1,"]=",vj)
+print(" ")
+
+# -- Elliptic curve setup - curve points have 256 bit coordinates ---
+
+# secp256k1: y^2 = x^3 + 7
+q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+F = GF(q)
+E = EllipticCurve(F, [0, 7])
+r = E.cardinality()
+PointInfinity = E(0)
+
+# --- Random generation of lattice matrix points ---
+start = time.time()
+MatrixP = []
+for i in range(n):
+    for j in range(m):
+        MatrixP.append(E.random_point())
+print("Time to generate matrix of curve points: ", time.time() - start, "seconds.")
+print(" ")
+
+# --- Hash digest computation
+start = time.time()
+result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,q)
+print("Time to compute the hash digest: ", time.time() - start, "seconds.")
+print("Digest:")
+print(result)
+print("Digest length:",len(result))
+
