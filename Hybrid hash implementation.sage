@@ -74,17 +74,12 @@ def HashComputation(P,vv,n,m,m_prime,PointInfinity,q):
 #####################################################
 
 # -- The lattice is defined by a matrix of 'n' x 'm' dimensions 
+l = 256
 n = 2
-m = 771
-m_prime = 514
-d = m-m_prime
-
-# -- Print parameters 
-print("Lattice parameter 'n':",n)
-print("Lattice parameter 'm':",m)
-print("m':",m_prime)
-print("m-m':",d)
-print(" ")
+c = 1.5
+m_prime = n*(l + 1)
+m = ceil(c*m_prime)
+d = m - m_prime
 
 # -- Ask the user to type a string and return its binary representation in a list 
 v = user_input()
@@ -110,6 +105,7 @@ vv=[]
 
 n_blocks = (len(v)) / d
 print("Number of blocks:",n_blocks)
+print("Length of each block:",d,"bits\n")
 
 for j in range(n_blocks):
      vj = v[j*d:(j+1)*d]
@@ -117,13 +113,15 @@ for j in range(n_blocks):
      print(f"v[{j+1}] =",vj)
 print(" ")
 
-# -- Elliptic curve setup - curve points have 256 bit coordinates 
+# -- Elliptic curve setup 
 
 # -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 F = GF(q)
 E = EllipticCurve(F, [0, 7])
 r = E.cardinality()
+assert r.is_prime()
+assert l == ceil(log(r, 2))
 PointInfinity = E(0)
 
 # -- Random generation of lattice matrix points 
@@ -132,12 +130,11 @@ MatrixP = []
 for i in range(n):
     for j in range(m):
         MatrixP.append(E.random_point())
-print("Time to generate matrix of curve points:", time.time() - start, "seconds.")
-print(" ")
+print("Time to generate matrix of curve points:", time.time() - start, "seconds.\n")
 
 # -- Hash digest computation
 start = time.time()
 result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,q)
 print("Time to compute the hash digest:", time.time() - start, "seconds.")
+print("Digest length:",len(result),"bits")
 print(f"H*(v) =", result)
-print("Digest length:",len(result))
