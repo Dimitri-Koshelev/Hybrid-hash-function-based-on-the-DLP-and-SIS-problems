@@ -80,8 +80,8 @@ m_prime = 514
 d = m-m_prime
 
 # -- Print parameters 
-print("Lattice parameter 'n': ",n)
-print("Lattice parameter 'm': ",m)
+print("Lattice parameter 'n':",n)
+print("Lattice parameter 'm':",m)
 print("m':",m_prime)
 print("m-m':",d)
 print(" ")
@@ -109,12 +109,12 @@ print("Padded message is", len(v) ,"bits long.")
 vv=[]
 
 n_blocks = (len(v)) / d
-print("Number of blocks: ",n_blocks)
+print("Number of blocks:",n_blocks)
 
 for j in range(n_blocks):
      vj = v[j*d:(j+1)*d]
      vv.append(vj)
-     print("v[",j+1,"]=",vj)
+     print(f"v[{j+1}] =",vj)
 print(" ")
 
 # -- Elliptic curve setup - curve points have 256 bit coordinates 
@@ -132,14 +132,12 @@ MatrixP = []
 for i in range(n):
     for j in range(m):
         MatrixP.append(E.random_point())
-print("Time to generate matrix of curve points: ", time.time() - start, "seconds.")
+print("Time to generate matrix of curve points:", time.time() - start, "seconds.")
 print(" ")
 
 # -- Hash digest computation
 start = time.time()
 result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,q)
-print("Time to compute the hash digest: ", time.time() - start, "seconds.")
-print("Digest:")
-print(result)
+print("Time to compute the hash digest:", time.time() - start, "seconds.")
+print(f"H*(v) =", result)
 print("Digest length:",len(result))
-
