@@ -15,16 +15,16 @@ def user_input():
 
 ###############################################################################
 # Basic hash function H computation. Given curve points matrix P and a length 
-# 'm' vector 'v', it computes the 'P*v' product and returns a length 'n*(l+1)' 
-# binary string per result ('l' is the length of the x-coordinate of elliptic
-# curve points, 256 in the current implementation).
+# 'm' vector 'v', it computes the length 'n' product 'P*v' and returns a binary 
+# string of length m' = n*(l+1) per result ('l' is the length of the x-coordinate 
+# of elliptic curve points, 256 in the current implementation).
 ###############################################################################
 def H(P,vi,n,m,PointInfinity,q):
     output=[]
 
     for i in range(n):
 
-        # -- Compute the i-th matrix row - vector product --
+        # -- Compute the i-th matrix row - vector product
         acum = PointInfinity
         for j in range(m):
             acum = acum + vi[j]*P[i*m + j]
@@ -51,14 +51,14 @@ def H(P,vi,n,m,PointInfinity,q):
 ###############################################################################
 def HashComputation(P,vv,n,m,m_prime,PointInfinity,q):
 
-    # -- Append zeros to the last block and compute its hash digest -- 
+    # -- Append zeros to the last block and compute its hash digest 
     numBlocks = len(vv)
     input = vv[numBlocks-1]
     while (len(input)<m):
         input.append(0)
     result = H(MatrixP,input,n,m,PointInfinity,q)
 
-    # -- Include the rest of blocks in the computation of the hash digest --
+    # -- Include the rest of blocks in the computation of the hash digest 
     index = numBlocks-2
     while index >= 0:
         input=vv[index]
@@ -73,39 +73,39 @@ def HashComputation(P,vv,n,m,m_prime,PointInfinity,q):
 # Main procedure
 #####################################################
 
-# -- The lattice is defined by a matrix of 'n' x 'm' dimensions --
+# -- The lattice is defined by a matrix of 'n' x 'm' dimensions 
 n = 2
 m = 771
 m_prime = 514
-d=m-m_prime
+d = m-m_prime
 
-# -- Print parameters --
+# -- Print parameters 
 print("Lattice parameter 'n': ",n)
 print("Lattice parameter 'm': ",m)
 print("m':",m_prime)
 print("m-m':",d)
 print(" ")
 
-# -- Ask the user to type a string and return its binary representation in a list --
+# -- Ask the user to type a string and return its binary representation in a list 
 v = user_input()
 print("Typed message is", len(v) ,"bits long.")
 
-# -- Pad the binary string so that it can be divided into blocks of d=(m-m') length --
-# -- This padding includes a 64-bit sequence at the end representing the length   --
+# -- Pad the binary string so that it can be divided into blocks of length 'd' 
+# -- This padding includes a 64-bit sequence at the end representing the length 
 # -- of the original message.
 
-# -- Represent the input message length in a 64-bit sequence --
+# -- Represent the input message length in a 64-bit sequence 
 v_length = Integer(len(v)).bits()
 while len(v_length) < 64 :
     v_length.append(0)
 
-# -- Pad the original message and append de 64-bit representation of original message length --
+# -- Pad the original message and append de 64-bit representation of original message length 
 while len(v)%d != (d-64):
     v.append(0)
 v.extend(v_length)
 print("Padded message is", len(v) ,"bits long.")
 
-# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks --
+# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks 
 vv=[]
 
 n_blocks = (len(v)) / d
@@ -117,16 +117,16 @@ for j in range(n_blocks):
      print("v[",j+1,"]=",vj)
 print(" ")
 
-# -- Elliptic curve setup - curve points have 256 bit coordinates ---
+# -- Elliptic curve setup - curve points have 256 bit coordinates 
 
-# secp256k1: y^2 = x^3 + 7
+# -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 F = GF(q)
 E = EllipticCurve(F, [0, 7])
 r = E.cardinality()
 PointInfinity = E(0)
 
-# --- Random generation of lattice matrix points ---
+# -- Random generation of lattice matrix points 
 start = time.time()
 MatrixP = []
 for i in range(n):
@@ -135,7 +135,7 @@ for i in range(n):
 print("Time to generate matrix of curve points: ", time.time() - start, "seconds.")
 print(" ")
 
-# --- Hash digest computation
+# -- Hash digest computation
 start = time.time()
 result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,q)
 print("Time to compute the hash digest: ", time.time() - start, "seconds.")
