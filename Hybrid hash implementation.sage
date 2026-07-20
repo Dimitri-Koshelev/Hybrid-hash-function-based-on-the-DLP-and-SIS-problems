@@ -94,6 +94,8 @@ v_length = Integer(len(v)).bits()
 while len(v_length) < 64 :
     v_length.append(0)
 
+v_length.reverse()
+
 # -- Pad the original message and append de 64-bit representation of original message length 
 while len(v)%d != (d-64):
     v.append(0)
