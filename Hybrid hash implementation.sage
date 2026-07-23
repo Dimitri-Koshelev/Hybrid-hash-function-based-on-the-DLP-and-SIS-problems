@@ -136,8 +136,6 @@ PointInfinity = E(0)
 x=F(0)
 while (x**3+F(7)).is_square():
     x = x + 1;
-print("x:",x)
-print("7 --",F(7).is_square())
 PointInfinitySequence = Integer(x).bits()
 # -- Prepend zeros if its length is below that of 'q'. An extra zero is appended to get the length of 'q'+1 
 while len(PointInfinitySequence) < q.nbits():
