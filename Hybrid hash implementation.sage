@@ -137,9 +137,10 @@ x=F(0)
 while x.is_square():
     x = x + 1;
 PointInfinitySequence = Integer(x).bits()
-# -- Prepend zeros if its length is below that of 'q' + 1 
-while len(PointInfinitySequence) <= q.nbits():
+# -- Prepend zeros if its length is below that of 'q'. An extra zero is appended to get the length of 'q'+1 
+while len(PointInfinitySequence) < q.nbits():
     PointInfinitySequence.insert(0,0)
+PointInfinitySequence.append(0)
 
 # -- Random generation of lattice matrix points 
 start = time.time()
