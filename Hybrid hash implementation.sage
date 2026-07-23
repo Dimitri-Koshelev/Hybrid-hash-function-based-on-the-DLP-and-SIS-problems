@@ -125,9 +125,10 @@ print(" ")
 # -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 F = GF(q)
-# -- We consider a general curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'
-a6 = F(7)
+# -- We admit a general prime-order curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'
 a4 = F(0)
+a6 = F(7)
+assert 4*a4^3 + 27*a6^2 != 0
 E = EllipticCurve(F, [a4, a6])
 r = E.cardinality()
 assert r.is_prime()
@@ -136,12 +137,12 @@ PointInfinity = E(0)
 
 # -- We search for a value 'x' so that there does not exist a point '(x,y)' in curve 'E'.
 # -- Such 'x' will be used to represent the point at infinity.
-x=F(0)
-while (x**3 + a4*x + a6).is_square():
+x = F(0)
+while (x^3 + a4*x + a6).is_square():
     x = x + 1;
 PointInfinitySequence = Integer(x).bits()
-# -- Prepend zeros if its length is below that of 'q'. An extra zero is appended to get the length of 'q'+1 
-while len(PointInfinitySequence) < q.nbits():
+# -- Prepend zeros if its length is below that of 'q', that is, 'l'. An extra zero is appended to get the length l + 1
+while len(PointInfinitySequence) < l:
     PointInfinitySequence.insert(0,0)
 PointInfinitySequence.append(0)
 
