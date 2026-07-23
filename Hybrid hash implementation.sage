@@ -134,8 +134,10 @@ PointInfinity = E(0)
 # -- We search for a value 'x' so that there does not exist a point '(x,y)' in curve 'E'.
 # -- Such 'x' will be used to represent the point at infinity.
 x=F(0)
-while x.is_square():
+while (x**3+F(7)).is_square():
     x = x + 1;
+print("x:",x)
+print("7 --",F(7).is_square())
 PointInfinitySequence = Integer(x).bits()
 # -- Prepend zeros if its length is below that of 'q'. An extra zero is appended to get the length of 'q'+1 
 while len(PointInfinitySequence) < q.nbits():
