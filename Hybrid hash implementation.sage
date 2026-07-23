@@ -19,7 +19,7 @@ def user_input():
 # string of length m' = n*(l+1) per result ('l' is the length of the x-coordinate 
 # of elliptic curve points, 256 in the current implementation).
 ###############################################################################
-def H(P,vi,n,m,PointInfinity,q):
+def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
     output=[]
 
     for i in range(n):
@@ -29,18 +29,23 @@ def H(P,vi,n,m,PointInfinity,q):
         for j in range(m):
             acum = acum + vi[j]*P[i*m + j]
 
-        # -- Take the resulting elliptic curve point x-coordinate
-        bitlist = Integer(acum[0]).bits()
-
-        # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q')
-        while len(bitlist) < q.nbits():
-            bitlist.insert(0,0)
-
-        # -- Append the compressed y-coordinate
-        if Integer(acum[1]) < (Integer(q)-1)/2 :
-            bitlist.append(0)
+        # -- Take the resulting elliptic curve point x-coordinate or the established
+        # -- representation of the point at infinity.
+        
+        if(acum == PointInfinity):
+            bitlist = PointInfinitySequence
         else:
-            bitlist.append(1)
+            bitlist = Integer(acum[0]).bits()
+
+            # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q')
+            while len(bitlist) < q.nbits():
+                bitlist.insert(0,0)
+
+            # -- Append the compressed y-coordinate
+            if Integer(acum[1]) < (Integer(q)-1)/2 :
+                bitlist.append(0)
+            else:
+                bitlist.append(1)
 
         output.extend(bitlist)
 
@@ -49,21 +54,21 @@ def H(P,vi,n,m,PointInfinity,q):
 ###############################################################################
 # Full hash computation
 ###############################################################################
-def HashComputation(P,vv,n,m,m_prime,PointInfinity,q):
+def HashComputation(P,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q):
 
     # -- Append zeros to the last block and compute its hash digest 
     numBlocks = len(vv)
     input = vv[numBlocks-1]
     while (len(input)<m):
         input.append(0)
-    result = H(MatrixP,input,n,m,PointInfinity,q)
+    result = H(MatrixP,input,n,m,PointInfinity,PointInfinitySequence,q)
 
     # -- Include the rest of blocks in the computation of the hash digest 
     index = numBlocks-2
     while index >= 0:
         input=vv[index]
         input.extend(result)
-        result = H(MatrixP,input,n,m,PointInfinity,q)
+        result = H(MatrixP,input,n,m,PointInfinity,PointInfinitySequence,q)
         index = index - 1
         
     return(result)
@@ -126,6 +131,16 @@ assert r.is_prime()
 assert l == ceil(log(r, 2))
 PointInfinity = E(0)
 
+# -- We search for a value 'x' so that there does not exist a point '(x,y)' in curve 'E'.
+# -- Such 'x' will be used to represent the point at infinity.
+x=F(0)
+while x.is_square():
+    x = x + 1;
+PointInfinitySequence = Integer(x).bits()
+# -- Prepend zeros if its length is below that of 'q' + 1 
+while len(PointInfinitySequence) <= q.nbits():
+    PointInfinitySequence.insert(0,0)
+
 # -- Random generation of lattice matrix points 
 start = time.time()
 MatrixP = []
@@ -136,7 +151,7 @@ print("Time to generate matrix of curve points:", time.time() - start, "seconds.
 
 # -- Hash digest computation
 start = time.time()
-result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,q)
+result = HashComputation(MatrixP,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q)
 print("Time to compute the hash digest:", time.time() - start, "seconds.")
 print("Digest length:",len(result),"bits")
 print(f"H*(v) =", result)
