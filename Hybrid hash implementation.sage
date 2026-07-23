@@ -36,7 +36,7 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
         else:
             bitlist = Integer(acum[0]).bits()
 
-            # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q').
+            # -- Prepend zeros if its length is below the maximum (bit length of modulus 'q').
             while len(bitlist) < q.nbits():
                 bitlist.insert(0,0)
 
