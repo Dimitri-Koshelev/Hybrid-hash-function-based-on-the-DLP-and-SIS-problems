@@ -1,9 +1,8 @@
 from sage.all import *
 import time
 
-
 ###############################################################################
-# Ask the user for a message and return its binary representation in a list
+# Ask the user for a message and return its binary representation in a list.
 ###############################################################################
 def user_input():
 
@@ -24,7 +23,7 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
 
     for i in range(n):
 
-        # -- Compute the i-th matrix row - vector product
+        # -- Compute the i-th matrix row - vector product.
         acum = PointInfinity
         for j in range(m):
             acum = acum + vi[j]*P[i*m + j]
@@ -37,11 +36,11 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
         else:
             bitlist = Integer(acum[0]).bits()
 
-            # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q')
+            # -- Prepend zeros if its length is below the maximum (bitlength of modulus 'q').
             while len(bitlist) < q.nbits():
                 bitlist.insert(0,0)
 
-            # -- Append the compressed y-coordinate
+            # -- Append the compressed y-coordinate.
             if Integer(acum[1]) < (Integer(q)-1)/2 :
                 bitlist.append(0)
             else:
@@ -56,14 +55,14 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
 ###############################################################################
 def HashComputation(P,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q):
 
-    # -- Append zeros to the last block and compute its hash digest 
+    # -- Append zeros to the last block and compute its hash digest.
     numBlocks = len(vv)
     input = vv[numBlocks-1]
     while (len(input)<m):
         input.append(0)
     result = H(MatrixP,input,n,m,PointInfinity,PointInfinitySequence,q)
 
-    # -- Include the rest of blocks in the computation of the hash digest 
+    # -- Include the rest of blocks in the computation of the hash digest. 
     index = numBlocks-2
     while index >= 0:
         input=vv[index]
@@ -78,7 +77,7 @@ def HashComputation(P,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q):
 # Main procedure
 #####################################################
 
-# -- The lattice is defined by a matrix of 'n' x 'm' dimensions 
+# -- The lattice is defined by a matrix of 'n' x 'm' dimensions.
 l = 256
 n = 2
 c = 1.5
@@ -86,28 +85,28 @@ m_prime = n*(l + 1)
 m = ceil(c*m_prime)
 d = m - m_prime
 
-# -- Ask the user to type a string and return its binary representation in a list 
+# -- Ask the user to type a string and return its binary representation in a list.
 v = user_input()
 print("Typed message is", len(v) ,"bits long.")
 
-# -- Pad the binary string so that it can be divided into blocks of length 'd' 
+# -- Pad the binary string so that it can be divided into blocks of length 'd'.
 # -- This padding includes a 64-bit sequence at the end representing the length 
 # -- of the original message.
 
-# -- Represent the input message length in a 64-bit sequence 
+# -- Represent the input message length in a 64-bit sequence.
 v_length = Integer(len(v)).bits()
 while len(v_length) < 64 :
     v_length.append(0)
 
 v_length.reverse()
 
-# -- Pad the original message and append de 64-bit representation of original message length 
+# -- Pad the original message and append de 64-bit representation of original message length.
 while len(v)%d != (d-64):
     v.append(0)
 v.extend(v_length)
 print("Padded message is", len(v) ,"bits long.")
 
-# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks 
+# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks.
 vv=[]
 
 n_blocks = (len(v)) / d
@@ -124,24 +123,24 @@ print(" ")
 
 # -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-F = GF(q)
-# -- We admit a general prime-order curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'
-a4 = F(0)
-a6 = F(7)
+Fq = GF(q)
+# -- We admit a general prime-order curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'.
+a4 = Fq(0)
+a6 = Fq(7)
 assert 4*a4^3 + 27*a6^2 != 0
-E = EllipticCurve(F, [a4, a6])
+E = EllipticCurve(Fq, [a4, a6])
 r = E.cardinality()
 assert r.is_prime()
 assert l == ceil(log(r, 2))
 PointInfinity = E(0)
 
-# -- We search for a value 'x' so that there does not exist a point '(x,y)' in curve 'E'.
+# -- We search for a value 'x' so that there does not exist Fq-point '(x,y)' on the curve 'E'.
 # -- Such 'x' will be used to represent the point at infinity.
-x = F(0)
+x = Fq(0)
 while (x^3 + a4*x + a6).is_square():
     x = x + 1;
 PointInfinitySequence = Integer(x).bits()
-# -- Prepend zeros if its length is below that of 'q', that is, 'l'. An extra zero is appended to get the length l + 1
+# -- Prepend zeros if its length is below that of 'q', that is, 'l'. An extra zero is appended to get the length l + 1.
 while len(PointInfinitySequence) < l:
     PointInfinitySequence.insert(0,0)
 PointInfinitySequence.append(0)
