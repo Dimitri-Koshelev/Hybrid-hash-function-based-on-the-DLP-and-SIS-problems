@@ -125,7 +125,10 @@ print(" ")
 # -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 F = GF(q)
-E = EllipticCurve(F, [0, 7])
+# -- We consider a general curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'
+a6 = F(7)
+a4 = F(0)
+E = EllipticCurve(F, [a4, a6])
 r = E.cardinality()
 assert r.is_prime()
 assert l == ceil(log(r, 2))
