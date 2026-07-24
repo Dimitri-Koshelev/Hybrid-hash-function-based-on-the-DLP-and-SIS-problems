@@ -37,8 +37,7 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
             bitlist = Integer(acum[0]).bits()
 
             # -- Append zeros if its length is below the maximum (bit length of modulus 'q').
-            if len(bitlist) < q.nbits():
-                bitlist = bitlist + [0]*(q.nbits()-len(bitlist))
+            bitlist = bitlist + [0]*(q.nbits()-len(bitlist))
 
             # -- Append the compressed y-coordinate.
             if Integer(acum[1]) < (Integer(q)-1)/2 :
@@ -58,8 +57,7 @@ def HashComputation(P,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q):
     # -- Append zeros to the last block and compute its hash digest.
     numBlocks = len(vv)
     input = vv[numBlocks-1]
-    if len(input)<m:
-        input = input + [0]*(m-len(input))
+    input = input + [0]*(m-len(input))
     
     result = H(MatrixP,input,n,m,PointInfinity,PointInfinitySequence,q)
 
@@ -96,8 +94,7 @@ print("Typed message is", len(v) ,"bits long.")
 
 # -- Represent the input message length in a 64-bit sequence.
 v_length = Integer(len(v)).bits()
-if len(v_length) < 64 :
-    v_length = v_length + [0]*(64-len(v_length))
+v_length = v_length + [0]*(64-len(v_length))
 
 v_length.reverse()
 
@@ -142,8 +139,7 @@ while (x^3 + a4*x + a6).is_square():
     x = x + 1;
 PointInfinitySequence = Integer(x).bits()
 # -- Append zeros if its length is below that of 'q', that is, 'l'. An extra zero is appended to get the length l + 1.
-if len(PointInfinitySequence) < l:
-    PointInfinitySequence = PointInfinitySequence + [0]*(l-len(PointInfinitySequence))
+PointInfinitySequence = PointInfinitySequence + [0]*(l-len(PointInfinitySequence))
 PointInfinitySequence.append(0)
 
 # -- Random generation of lattice matrix points 
