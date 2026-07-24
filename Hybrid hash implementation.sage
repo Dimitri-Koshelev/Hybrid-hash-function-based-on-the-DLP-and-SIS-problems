@@ -121,17 +121,22 @@ print(" ")
 # -- Elliptic curve setup 
 
 # -- secp256k1: y^2 = x^3 + 7
-q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+r = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+q = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
+assert r.is_prime()
+assert q.is_prime_power()
+l = ceil(log(r, 2))
+lpr = ceil(log(q, 2)) 
 Fq = GF(q)
+
 # -- We admit a general curve y^2 = x^3 + a4*x + a6, but set a4 and a6 for secp256k1.
 a4 = Fq(0)
 a6 = Fq(7)
 assert 4*a4^3 + 27*a6^2 != 0
 E = EllipticCurve(Fq, [a4, a6])
-r = E.cardinality()
-assert r.is_prime()
-assert l == ceil(log(r, 2))
+assert E.cardinality() % r == 0
 PointInfinity = E(0)
+
 
 # -- We search for a value x so that there does not exist Fq-point (x,y) on the curve E.
 # -- Such x will be used to represent the point at infinity.
