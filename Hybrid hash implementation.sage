@@ -14,9 +14,9 @@ def user_input():
 
 ###############################################################################
 # Basic hash function H computation. Given curve points matrix P and a length 
-# 'm' vector 'v', it computes the length 'n' product 'P*v' and returns a binary 
-# string of length m' = n*(l+1) per result ('l' is the length of the x-coordinate 
-# of elliptic curve points, 256 in the current implementation).
+# m vector v, it computes the length n product P*v and returns a binary 
+# string of length m' = n*(l'+1) per result (l' is the length of the x-coordinate 
+# of elliptic curve points).
 ###############################################################################
 def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
     output=[]
@@ -36,7 +36,7 @@ def H(P,vi,n,m,PointInfinity,PointInfinitySequence,q):
         else:
             bitlist = Integer(acum[0]).bits()
 
-            # -- Append zeros if its length is below the maximum (bit length of modulus 'q').
+            # -- Append zeros if its length is below the bit length of modulus q, that is, l'.
             bitlist = bitlist + [0]*(q.nbits()-len(bitlist))
 
             # -- Append the compressed y-coordinate.
@@ -76,11 +76,12 @@ def HashComputation(P,vv,n,m,m_prime,PointInfinity,PointInfinitySequence,q):
 # Main procedure
 #####################################################
 
-# -- The lattice is defined by a matrix of 'n' x 'm' dimensions.
+# -- The lattice is defined by a matrix of n x m dimensions.
 l = 256
+lpr = 256
 n = 2
 c = 1.5
-m_prime = n*(l + 1)
+m_prime = n*(lpr + 1)
 m = ceil(c*m_prime)
 d = m - m_prime
 
@@ -88,7 +89,7 @@ d = m - m_prime
 v = user_input()
 print("Typed message is", len(v) ,"bits long.")
 
-# -- Pad the binary string so that it can be divided into blocks of length 'd'.
+# -- Pad the binary string so that it can be divided into blocks of length d.
 # -- This padding includes a 64-bit sequence at the end representing the length 
 # -- of the original message.
 
@@ -104,7 +105,7 @@ while len(v)%d != (d-64):
 v.extend(v_length)
 print("Padded message is", len(v) ,"bits long.")
 
-# -- Split 'v' into 'v_1', 'v_2', ... , 'v_k' blocks.
+# -- Split v into v_1, v_2, ... , v_k blocks.
 vv=[]
 
 n_blocks = (len(v)) / d
@@ -122,7 +123,7 @@ print(" ")
 # -- secp256k1: y^2 = x^3 + 7
 q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 Fq = GF(q)
-# -- We admit a general prime-order curve 'y^2 = x^3 + a4*x + a6', but set 'a4' and 'a6' for 'secp256k1'.
+# -- We admit a general curve y^2 = x^3 + a4*x + a6, but set a4 and a6 for secp256k1.
 a4 = Fq(0)
 a6 = Fq(7)
 assert 4*a4^3 + 27*a6^2 != 0
@@ -132,14 +133,14 @@ assert r.is_prime()
 assert l == ceil(log(r, 2))
 PointInfinity = E(0)
 
-# -- We search for a value 'x' so that there does not exist Fq-point '(x,y)' on the curve 'E'.
-# -- Such 'x' will be used to represent the point at infinity.
+# -- We search for a value x so that there does not exist Fq-point (x,y) on the curve E.
+# -- Such x will be used to represent the point at infinity.
 x = Fq(0)
 while (x^3 + a4*x + a6).is_square():
     x = x + 1;
 PointInfinitySequence = Integer(x).bits()
-# -- Append zeros if its length is below that of 'q', that is, 'l'. An extra zero is appended to get the length l + 1.
-PointInfinitySequence = PointInfinitySequence + [0]*(l-len(PointInfinitySequence))
+# -- Append zeros if its length is below that of q, that is, l'. An extra zero is appended to get the length l' + 1.
+PointInfinitySequence = PointInfinitySequence + [0]*(lpr-len(PointInfinitySequence))
 PointInfinitySequence.append(0)
 
 # -- Random generation of lattice matrix points 
